@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hello World</title>
+    <script src="https://unpkg.com/react@latest/dist/react.js"></script>
+    <script src="https://unpkg.com/react-dom@latest/dist/react-dom.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+ <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="style.css">
+	 <script src="dataset.js"></script>
+  </head>
+  <body>
+		<h3>Test</h3>	
+	 <div id="root">
+	
+	 </div>	
+	 <div id="detail"></div>
+ 
+ <script type="text/babel">
+
+
+function getUsersFromApiAsync(val) {
+    return fetch('https://api.github.com/search/users?q=' + val)
+      .then((response) => response.json())
+      .then((responseJson) => {
+        return responseJson;
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }  
+  
+  function getDataFromApiAsync(val) {
+    return fetch('dataset.js')
+      .then((response) => response.json())
+      .then((responseJson) => {
+        return responseJson;
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }  
+  
+  function getData(){
+
+	  var promise = new Promise(function(resolve, reject) {
+			// maybe do some async stuff in here
+		resolve(set);
+	  });
+	  return promise;
+
+  }
+  
+class UserRow extends React.Component {
+	constructor(props){
+		super(props);
+		this.handleClick = this.handleClick.bind(this);   
+	}
+    
+   handleClick(e, id) {
+     this.setState({id: id});	
+	 this.props.onHandleClickInput(id);
+  }
+
+  render() {
+    var name = this.props.product[0] ;
+
+    return (
+      <tr>       
+		<td>{name}</td>
+        <td>{this.props.product[4].toFixed(2)}</td>
+      </tr>
+    );
+  }
+}
+
+class UsersTable extends React.Component {
+	constructor(props){
+		super(props);
+	    this.handleClickInput = this.handleClickInput.bind(this);
+	}
+  
+	handleClickInput(id) {	   
+	  this.props.onHandleClickInput(id);
+	    this.setState({
+	      id: id
+	    })
+    }
+	
+  render() {
+    var rows = [];
+    var lastCategory = null;
+
+    if(this.props.users && this.props.users.length>0){
+		this.props.users.forEach((product) => {      
+	      rows.push(<UserRow 
+						product={product} 
+						key={product[0]} 
+						onHandleClickInput = {this.handleClickInput}				
+					/>);  
+	    });
+	}
+    return (
+      <table className="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Login</th>
+          </tr>
+        </thead>
+        <tbody>{rows}</tbody>
+      </table>
+    );
+  }
+}
+
+
+
+class SearchBar extends React.Component {
+  constructor(props) {
+    super(props);
+    this.handleFilterTextInputChange = this.handleFilterTextInputChange.bind(this);
+	this.handleClick = this.handleClick.bind(this);
+  }
+  
+  handleFilterTextInputChange(e) {
+    this.props.onFilterTextInput(e.target.value);
+  }
+  handleClick(){
+	  console.log("button click");
+	  this.props.onFilterTextInput("somevalue");
+  }
+  
+  render() {
+    return (
+      <form>
+        <input
+          type="text"
+          placeholder="Search for users ..."
+          value={this.props.filterText}
+          onChange={this.handleFilterTextInputChange}
+        />
+		<input type="button" value="Search" onClick={this.handleClick}/>
+       
+      </form>
+    );
+  }
+}
+
+class Setup extends React.Component {
+   constructor (props){
+		super(props);
+		this.state  ={
+			id:0,
+			users:null,
+			product:null,
+			filterText:""
+		}
+		this.handleFilterTextInput = this.handleFilterTextInput.bind(this);
+		this.handleClickInput = this.handleClickInput.bind(this);
+   }   
+   componentDidMount() {
+		
+	}
+	handleFilterTextInput(filterText) {	
+		if(filterText && filterText.length>2)
+		 getData().then(response =>{				
+			 //console.log(response.dataset);
+			 var colnames = response.dataset.column_names;
+			 console.log(colnames);
+			 var data = response.dataset.data;
+			// data.forEach(it=> console.log(it[0] + " " + it[4].toFixed(2)));
+			 this.setState ({
+				 users: data			
+			 });
+		 });		
+	    this.setState({
+	      filterText: filterText
+	    });
+	
+  }
+    handleClickInput(id) {
+		var prod = this.state.users.filter (sub => sub.id ==id)[0];
+	    this.setState({
+	        product:prod		
+	    });
+    }
+	render () {						
+
+	    if (this.state.users && this.state.users.length >0) {   					
+			  return (
+			  <div className="container"> 
+					<div className="row">
+						<div className="col-sm-3 col-md-6">											
+							    <SearchBar
+							          filterText={this.state.filterText}							     
+							          onFilterTextInput={this.handleFilterTextInput}							        
+								/>
+								Results:{this.state.users.length}	
+							 <UsersTable 
+									users={this.state.users}
+									onHandleClickInput={this.handleClickInput}
+							 />		
+						</div>							
+						<div className="col-sm-3 col-md-6">		 
+							
+						</div>	
+					</div> 					 
+				</div>		
+			  );
+		}
+    return <div className="container"><SearchBar
+							          filterText={this.state.filterText}							        
+							          onFilterTextInput={this.handleFilterTextInput}							      
+								/></div>
+   }
+}
+
+	ReactDOM.render(<Setup />,document.getElementById('root'));
+
+</script>
+	<div id="container"></div>
+  </body>
+</html>
