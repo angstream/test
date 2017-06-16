@@ -19,9 +19,14 @@
  
  <script type="text/babel">
 
+ const url ="https://www.quandl.com/api/v3/datasets/YAHOO/MSFT.json?start_date=2016-03-13";
 
+ function getUrl(symbol){
+	 return "https://www.quandl.com/api/v3/datasets/YAHOO/"+ symbol + ".json?start_date=2016-03-13";
+ }
+ 
 function getUsersFromApiAsync(val) {
-    return fetch('https://api.github.com/search/users?q=' + val)
+    return fetch(getUrl(val))
       .then((response) => response.json())
       .then((responseJson) => {
         return responseJson;
@@ -122,24 +127,33 @@ class SearchBar extends React.Component {
     super(props);
     this.handleFilterTextInputChange = this.handleFilterTextInputChange.bind(this);
 	this.handleClick = this.handleClick.bind(this);
+	this.handleKeyPress = this.handleKeyPress(this);
   }
   
   handleFilterTextInputChange(e) {
-    this.props.onFilterTextInput(e.target.value);
+    //this.props.onFilterTextInput(e.target.value);	
+    this.setState({ input: e.target.value });  
   }
   handleClick(){
-	  console.log("button click");
-	  this.props.onFilterTextInput("somevalue");
+	   //console.log("button click");
+	   console.log(this.state.input);
+	  // this.props.onFilterTextInput(this.state.input);
   }
-  
+  handleKeyPress(e) {
+	  console.log(e.charCode);
+    //if (e.key === 'Enter') {
+     // console.log('do Enter');
+    //}
+  }
+  // onChange={this.handleFilterTextInputChange}        value={this.props.filterText}
   render() {
     return (
       <form>
         <input
           type="text"
-          placeholder="Search for users ..."
-          value={this.props.filterText}
-          onChange={this.handleFilterTextInputChange}
+			placeholder="Search ..."   
+			onChange={this.handleFilterTextInputChange}   
+			onKeyPress={this.handleKeyPress}
         />
 		<input type="button" value="Search" onClick={this.handleClick}/>
        
@@ -165,8 +179,8 @@ class Setup extends React.Component {
 	}
 	handleFilterTextInput(filterText) {	
 		if(filterText && filterText.length>2)
-		 getData().then(response =>{				
-			 //console.log(response.dataset);
+		 getUsersFromApiAsync(filterText).then(response =>{				
+			 console.log(response.dataset);
 			 var colnames = response.dataset.column_names;
 			 console.log(colnames);
 			 var data = response.dataset.data;
